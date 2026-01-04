@@ -7,7 +7,7 @@ set -euo pipefail
 # Constants
 readonly MAX_TEST_ITERATIONS=100
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-readonly SCRIPTS_PATH="${SCRIPT_DIR}/vim"
+readonly SCRIPTS_PATH="${SCRIPT_DIR}/scripts/vim"
 
 # Test counters
 TESTS_RUN=0

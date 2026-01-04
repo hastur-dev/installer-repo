@@ -35,26 +35,61 @@ function Write-LogSuccess {
 # Refresh PATH
 function Update-PathEnvironment {
     Write-LogInfo "Refreshing PATH environment..."
-    $emacsPaths = @(
-        "$env:ProgramFiles\Emacs\*\bin",
-        "$env:ProgramFiles(x86)\Emacs\*\bin",
-        "$env:LOCALAPPDATA\Programs\Emacs\*\bin"
-    )
-    $pathsToAdd = @()
-    foreach ($pattern in $emacsPaths) {
-        $matches = Get-ChildItem -Path $pattern -Directory -ErrorAction SilentlyContinue
-        foreach ($match in $matches) {
-            if (Test-Path $match.FullName) {
-                $pathsToAdd += $match.FullName
-            }
-        }
-    }
-    if ($pathsToAdd.Count -gt 0) {
-        $env:Path = ($pathsToAdd -join ";") + ";" + $env:Path
-    }
+
+    # First refresh from registry
     $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
     $userPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
     $env:Path = "$machinePath;$userPath"
+
+    # Common Emacs installation paths
+    $emacsPaths = @(
+        "$env:ProgramFiles\Emacs\emacs-*\bin",
+        "$env:ProgramFiles\Emacs\*\bin",
+        "${env:ProgramFiles(x86)}\Emacs\emacs-*\bin",
+        "${env:ProgramFiles(x86)}\Emacs\*\bin",
+        "$env:LOCALAPPDATA\Programs\Emacs\emacs-*\bin",
+        "$env:LOCALAPPDATA\Programs\Emacs\*\bin",
+        "C:\tools\emacs\*\bin",
+        "C:\emacs\*\bin",
+        "C:\Emacs\emacs-*\bin"
+    )
+
+    $pathsToAdd = @()
+    foreach ($pattern in $emacsPaths) {
+        try {
+            $foundPaths = Get-ChildItem -Path $pattern -Directory -ErrorAction SilentlyContinue
+            foreach ($foundPath in $foundPaths) {
+                if ((Test-Path $foundPath.FullName) -and ($pathsToAdd -notcontains $foundPath.FullName)) {
+                    $pathsToAdd += $foundPath.FullName
+                }
+            }
+        } catch {
+            # Ignore pattern match errors
+        }
+    }
+
+    # Also check for direct emacs.exe in common locations
+    $directPaths = @(
+        "$env:ProgramFiles\Emacs",
+        "${env:ProgramFiles(x86)}\Emacs",
+        "$env:LOCALAPPDATA\Programs\Emacs"
+    )
+    foreach ($basePath in $directPaths) {
+        if (Test-Path $basePath) {
+            $binDirs = Get-ChildItem -Path $basePath -Recurse -Filter "emacs.exe" -ErrorAction SilentlyContinue |
+                       Select-Object -ExpandProperty DirectoryName -Unique
+            foreach ($binDir in $binDirs) {
+                if ($pathsToAdd -notcontains $binDir) {
+                    $pathsToAdd += $binDir
+                }
+            }
+        }
+    }
+
+    # Add found paths to PATH
+    if ($pathsToAdd.Count -gt 0) {
+        $env:Path = ($pathsToAdd -join ";") + ";" + $env:Path
+    }
 }
 
 # Find emacs executable

@@ -1,12 +1,12 @@
 # Dockerfile for Linux install testing
 # Image name: install-linux
-# Tests install-linux.sh and run-linux.sh scripts
+# Tests install-linux.sh and run-linux.sh scripts for all technologies
 
 FROM ubuntu:22.04
 
 # Labels for identification
 LABEL maintainer="ratterm-installer"
-LABEL description="Linux container for testing Vim installation scripts"
+LABEL description="Linux container for testing installation scripts"
 LABEL os="linux"
 
 # Environment variables
@@ -19,17 +19,20 @@ RUN apt-get update && \
     sudo \
     bash \
     curl \
+    wget \
     ca-certificates \
+    gnupg \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app
 
-# Copy vim scripts
-COPY vim/ /app/vim/
+# Copy all script directories
+COPY scripts/ /app/scripts/
 
-# Make scripts executable
-RUN chmod +x /app/vim/*.sh
+# Make all shell scripts executable
+RUN find /app/scripts -name "*.sh" -exec chmod +x {} \;
 
 # Set default shell
 SHELL ["/bin/bash", "-c"]
@@ -38,5 +41,5 @@ SHELL ["/bin/bash", "-c"]
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD bash --version || exit 1
 
-# Default command runs install then verify
-CMD ["/bin/bash", "-c", "/app/vim/install-linux.sh && /app/vim/run-linux.sh"]
+# Default command (override in CI for specific technology)
+CMD ["/bin/bash", "-c", "echo 'Specify technology to test'"]

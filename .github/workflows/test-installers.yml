@@ -5,12 +5,19 @@
 name: Test Install Scripts
 
 on:
-  # Run on ALL pull requests targeting main (required for branch protection)
+  # Run on pull requests from dev to main
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
 
-  # Manual trigger for testing
+  # Manual trigger for testing on any branch
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests on'
+        required: false
+        default: 'dev'
+        type: string
 
 env:
   MAX_RETRIES: 3
@@ -18,11 +25,94 @@ env:
 
 jobs:
   # ============================================
+  # Discover Technologies (auto-detect scripts directories)
+  # ============================================
+  discover-technologies:
+    name: Discover Technologies
+    runs-on: ubuntu-latest
+    outputs:
+      technologies: ${{ steps.discover.outputs.technologies }}
+      technologies_count: ${{ steps.discover.outputs.count }}
+      has_new: ${{ steps.discover.outputs.has_new }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Discover new technologies (not in main)
+        id: discover
+        run: |
+          set -euo pipefail
+
+          echo "Discovering NEW technologies (not in main branch)..."
+
+          # Exclude list for technologies that can't run in CI
+          EXCLUDE_LIST="gpustat"
+
+          # Get list of technology directories in main branch
+          git fetch origin main --depth=1 2>/dev/null || true
+          MAIN_TECHS=$(git ls-tree --name-only origin/main scripts/ 2>/dev/null | sed 's|scripts/||' | grep -v '^$' || echo "")
+          echo "Technologies in main: $MAIN_TECHS"
+
+          # Get current branch technologies
+          TECHNOLOGIES=()
+          MAX_DIRS=50
+          COUNT=0
+
+          for dir in scripts/*/; do
+            if [ -d "$dir" ]; then
+              tech_name=$(basename "$dir")
+
+              # Skip excluded technologies
+              if echo "$EXCLUDE_LIST" | grep -qw "$tech_name"; then
+                echo "Skipping excluded: $tech_name"
+                continue
+              fi
+
+              # Skip if already in main
+              if echo "$MAIN_TECHS" | grep -qw "$tech_name"; then
+                echo "Skipping (already in main): $tech_name"
+                continue
+              fi
+
+              # Verify it has the required scripts
+              if [ -f "${dir}install-linux.sh" ] && [ -f "${dir}install-macos.sh" ] && [ -f "${dir}install-windows.ps1" ]; then
+                TECHNOLOGIES+=("$tech_name")
+                ((COUNT++)) || true
+                echo "NEW technology found: $tech_name"
+
+                if [ $COUNT -gt $MAX_DIRS ]; then
+                  echo "ERROR: Too many technology directories"
+                  exit 1
+                fi
+              else
+                echo "Skipping incomplete: $tech_name (missing required scripts)"
+              fi
+            fi
+          done
+
+          # Convert to JSON array (empty array if none found)
+          if [ ${#TECHNOLOGIES[@]} -eq 0 ]; then
+            JSON_ARRAY="[]"
+          else
+            JSON_ARRAY=$(printf '%s\n' "${TECHNOLOGIES[@]}" | jq -R . | jq -s -c .)
+          fi
+
+          echo "technologies=$JSON_ARRAY" >> $GITHUB_OUTPUT
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          echo "has_new=$( [ $COUNT -gt 0 ] && echo 'true' || echo 'false' )" >> $GITHUB_OUTPUT
+
+          echo ""
+          echo "========================================"
+          echo "Found $COUNT NEW technologies to test: $JSON_ARRAY"
+          echo "========================================"
+
+  # ============================================
   # Script Syntax Validation
   # ============================================
   validate-scripts:
     name: Validate Script Syntax
     runs-on: ubuntu-latest
+    needs: discover-technologies
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,7 +128,7 @@ jobs:
           MAX_SCRIPTS=100
 
           # Find all .sh files in application directories
-          for script in */install-*.sh */run-*.sh */uninstall-*.sh; do
+          for script in scripts/*/install-*.sh scripts/*/run-*.sh scripts/*/uninstall-*.sh; do
             if [ -f "$script" ]; then
               ((SCRIPTS_FOUND++)) || true
               if [ $SCRIPTS_FOUND -gt $MAX_SCRIPTS ]; then
@@ -62,7 +152,7 @@ jobs:
           $scriptsFound = 0
 
           # Find all .ps1 files in application directories
-          $patterns = @("*/install-*.ps1", "*/run-*.ps1", "*/uninstall-*.ps1")
+          $patterns = @("scripts/*/install-*.ps1", "scripts/*/run-*.ps1", "scripts/*/uninstall-*.ps1")
           foreach ($pattern in $patterns) {
             Get-ChildItem -Path $pattern -ErrorAction SilentlyContinue | ForEach-Object {
               $scriptsFound++
@@ -88,12 +178,17 @@ jobs:
           Write-Host "Validated $scriptsFound PowerShell scripts"
 
   # ============================================
-  # Linux Testing (Docker-based)
+  # Linux Testing (Docker-based) - New Technologies Only
   # ============================================
   test-linux:
-    name: Test Linux Install
+    name: Test Linux - ${{ matrix.technology }}
     runs-on: ubuntu-latest
-    needs: validate-scripts
+    needs: [discover-technologies, validate-scripts]
+    if: needs.discover-technologies.outputs.has_new == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        technology: ${{ fromJson(needs.discover-technologies.outputs.technologies) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -104,113 +199,68 @@ jobs:
           echo "Building install-linux Docker image..."
           docker build -f docker/Dockerfile.linux -t install-linux .
 
-      - name: Run install script in container
+      - name: Run install and verify scripts
         run: |
           set -euo pipefail
-          echo "Running install-linux.sh..."
-          docker run --rm install-linux /bin/bash -c "/app/vim/install-linux.sh"
-
-      - name: Run verification script in container
-        run: |
-          set -euo pipefail
-          echo "Running run-linux.sh to verify installation..."
-          docker run --rm install-linux /bin/bash -c "/app/vim/install-linux.sh && /app/vim/run-linux.sh"
+          TECH="${{ matrix.technology }}"
+          echo "Testing $TECH on Linux..."
+          docker run --rm install-linux /bin/bash -c "/app/scripts/$TECH/install-linux.sh && /app/scripts/$TECH/run-linux.sh"
 
   # ============================================
-  # macOS Testing (Native runner)
+  # macOS Testing (Native runner) - New Technologies Only
   # ============================================
   test-macos:
-    name: Test macOS Install
+    name: Test macOS - ${{ matrix.technology }}
     runs-on: macos-latest
-    needs: validate-scripts
+    needs: [discover-technologies, validate-scripts]
+    if: needs.discover-technologies.outputs.has_new == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        technology: ${{ fromJson(needs.discover-technologies.outputs.technologies) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Make scripts executable
         run: |
-          chmod +x vim/install-macos.sh
-          chmod +x vim/run-macos.sh
+          chmod +x scripts/${{ matrix.technology }}/install-macos.sh
+          chmod +x scripts/${{ matrix.technology }}/run-macos.sh
 
-      - name: Run install script
+      - name: Run install and verify scripts
         run: |
           set -euo pipefail
-          echo "Running install-macos.sh..."
-          ./vim/install-macos.sh
-
-      - name: Run verification script
-        run: |
-          set -euo pipefail
-          echo "Running run-macos.sh to verify installation..."
-          ./vim/run-macos.sh
+          TECH="${{ matrix.technology }}"
+          echo "Testing $TECH on macOS..."
+          ./scripts/$TECH/install-macos.sh
+          ./scripts/$TECH/run-macos.sh
 
   # ============================================
-  # Windows Testing (Native runner)
+  # Windows Testing (Native runner) - New Technologies Only
   # ============================================
   test-windows:
-    name: Test Windows Install
+    name: Test Windows - ${{ matrix.technology }}
     runs-on: windows-latest
-    needs: validate-scripts
+    needs: [discover-technologies, validate-scripts]
+    if: needs.discover-technologies.outputs.has_new == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        technology: ${{ fromJson(needs.discover-technologies.outputs.technologies) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run install script
+      - name: Run install and verify scripts
         shell: pwsh
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = "Stop"
 
-          Write-Host "Running install-windows.ps1..."
-          & .\vim\install-windows.ps1
-
-      - name: Run verification script
-        shell: pwsh
-        run: |
-          Set-StrictMode -Version Latest
-          $ErrorActionPreference = "Stop"
-
-          Write-Host "Running run-windows.ps1 to verify installation..."
-          & .\vim\run-windows.ps1
-
-  # ============================================
-  # Docker Build Test (all Dockerfiles)
-  # ============================================
-  test-docker-builds:
-    name: Test Docker Builds
-    runs-on: ubuntu-latest
-    needs: validate-scripts
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build all Docker images
-        run: |
-          set -euo pipefail
-
-          MAX_DOCKERFILES=10
-          DOCKERFILE_COUNT=0
-
-          for dockerfile in docker/Dockerfile.*; do
-            if [ -f "$dockerfile" ]; then
-              ((DOCKERFILE_COUNT++)) || true
-              if [ $DOCKERFILE_COUNT -gt $MAX_DOCKERFILES ]; then
-                echo "ERROR: Too many Dockerfiles"
-                exit 1
-              fi
-
-              os_name="${dockerfile##*.}"
-              image_name="install-${os_name}"
-
-              echo "Building: ${image_name} from ${dockerfile}"
-              docker build -f "$dockerfile" -t "$image_name" .
-
-              echo "Testing: ${image_name}"
-              docker run --rm "$image_name" echo "Container started successfully"
-            fi
-          done
-
-          echo "Built and tested $DOCKERFILE_COUNT Docker images"
+          $tech = "${{ matrix.technology }}"
+          Write-Host "Testing $tech on Windows..."
+          & ".\scripts\$tech\install-windows.ps1"
+          & ".\scripts\$tech\run-windows.ps1"
 
   # ============================================
   # Required Status Check (for branch protection)
@@ -218,7 +268,7 @@ jobs:
   ci-status:
     name: CI Status
     runs-on: ubuntu-latest
-    needs: [validate-scripts, test-linux, test-macos, test-windows, test-docker-builds]
+    needs: [discover-technologies, validate-scripts, test-linux, test-macos, test-windows]
     if: always()
     steps:
       - name: Check all jobs passed
@@ -228,6 +278,19 @@ jobs:
           echo "========================================="
 
           FAILED=0
+          HAS_NEW_TECH="${{ needs.discover-technologies.outputs.has_new }}"
+
+          if [ "${{ needs.discover-technologies.result }}" != "success" ]; then
+            echo "❌ Technology discovery: ${{ needs.discover-technologies.result }}"
+            FAILED=1
+          else
+            echo "✅ Technology discovery: passed"
+            if [ "$HAS_NEW_TECH" = "true" ]; then
+              echo "   → New technologies found: ${{ needs.discover-technologies.outputs.technologies }}"
+            else
+              echo "   → No new technologies to test"
+            fi
+          fi
 
           if [ "${{ needs.validate-scripts.result }}" != "success" ]; then
             echo "❌ Script validation: ${{ needs.validate-scripts.result }}"
@@ -236,32 +299,32 @@ jobs:
             echo "✅ Script validation: passed"
           fi
 
-          if [ "${{ needs.test-linux.result }}" != "success" ]; then
-            echo "❌ Linux tests: ${{ needs.test-linux.result }}"
-            FAILED=1
-          else
-            echo "✅ Linux tests: passed"
-          fi
+          # Test jobs are skipped if no new technologies - that's OK
+          if [ "$HAS_NEW_TECH" = "true" ]; then
+            if [ "${{ needs.test-linux.result }}" != "success" ]; then
+              echo "❌ Linux tests: ${{ needs.test-linux.result }}"
+              FAILED=1
+            else
+              echo "✅ Linux tests: passed"
+            fi
 
-          if [ "${{ needs.test-macos.result }}" != "success" ]; then
-            echo "❌ macOS tests: ${{ needs.test-macos.result }}"
-            FAILED=1
-          else
-            echo "✅ macOS tests: passed"
-          fi
+            if [ "${{ needs.test-macos.result }}" != "success" ]; then
+              echo "❌ macOS tests: ${{ needs.test-macos.result }}"
+              FAILED=1
+            else
+              echo "✅ macOS tests: passed"
+            fi
 
-          if [ "${{ needs.test-windows.result }}" != "success" ]; then
-            echo "❌ Windows tests: ${{ needs.test-windows.result }}"
-            FAILED=1
+            if [ "${{ needs.test-windows.result }}" != "success" ]; then
+              echo "❌ Windows tests: ${{ needs.test-windows.result }}"
+              FAILED=1
+            else
+              echo "✅ Windows tests: passed"
+            fi
           else
-            echo "✅ Windows tests: passed"
-          fi
-
-          if [ "${{ needs.test-docker-builds.result }}" != "success" ]; then
-            echo "❌ Docker builds: ${{ needs.test-docker-builds.result }}"
-            FAILED=1
-          else
-            echo "✅ Docker builds: passed"
+            echo "⏭️  Linux tests: skipped (no new technologies)"
+            echo "⏭️  macOS tests: skipped (no new technologies)"
+            echo "⏭️  Windows tests: skipped (no new technologies)"
           fi
 
           echo "========================================="

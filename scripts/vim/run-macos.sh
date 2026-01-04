@@ -21,7 +21,7 @@ log_info() {
         echo "[ERROR] log_info: message cannot be empty" >&2
         return 1
     fi
-    echo "[INFO] ${SCRIPT_NAME}: ${message}"
+    echo "[INFO] ${SCRIPT_NAME}: ${message}" >&2
 }
 
 log_error() {
@@ -41,7 +41,7 @@ log_success() {
         echo "[ERROR] log_success: message cannot be empty" >&2
         return 1
     fi
-    echo "[SUCCESS] ${SCRIPT_NAME}: ${message}"
+    echo "[SUCCESS] ${SCRIPT_NAME}: ${message}" >&2
 }
 
 # Check if running on macOS

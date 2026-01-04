@@ -11,7 +11,7 @@ if (-not $SCRIPT_DIR) {
     $SCRIPT_DIR = Get-Location
 }
 $SCRIPT_DIR = Split-Path -Parent $SCRIPT_DIR
-$SCRIPTS_PATH = Join-Path $SCRIPT_DIR "vim"
+$SCRIPTS_PATH = Join-Path $SCRIPT_DIR "scripts" | Join-Path -ChildPath "vim"
 
 # Test counters
 $script:TestsRun = 0
