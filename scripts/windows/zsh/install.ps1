@@ -108,19 +108,19 @@ function Main {
     }
 
     Write-LogWarn "Zsh is not natively available on Windows."
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "Options for using Zsh on Windows:"
     Write-LogInfo "1. WSL (Windows Subsystem for Linux) - Recommended"
     Write-LogInfo "2. Git Bash (limited Zsh support)"
     Write-LogInfo "3. Cygwin or MSYS2"
-    Write-LogInfo ""
+    Write-Host ""
 
     if (Test-WSLInstalled) {
         Write-LogInfo "WSL is already installed on your system."
         Write-LogInfo "To install Zsh in WSL, run the following commands:"
         Write-LogInfo "  wsl"
         Write-LogInfo "  sudo apt-get update && sudo apt-get install -y zsh"
-        Write-LogInfo ""
+        Write-Host ""
         Write-LogInfo "To set Zsh as your default shell in WSL:"
         Write-LogInfo "  chsh -s $(which zsh)"
     } else {

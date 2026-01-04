@@ -70,18 +70,18 @@ function Main {
     }
 
     Write-LogWarn "Zsh is not natively installed on Windows."
-    Write-LogInfo ""
+    Write-Host ""
 
     if (Test-WSLInstalled) {
         Write-LogInfo "WSL is installed on your system."
         Write-LogInfo "To uninstall Zsh from WSL, run the following commands:"
-        Write-LogInfo ""
+        Write-Host ""
         Write-LogInfo "  wsl"
         Write-LogInfo "  # First, change your default shell if Zsh is the default:"
         Write-LogInfo "  chsh -s /bin/bash"
         Write-LogInfo "  # Then uninstall Zsh:"
         Write-LogInfo "  sudo apt-get remove -y zsh"
-        Write-LogInfo ""
+        Write-Host ""
     } else {
         Write-LogInfo "WSL is not installed. Zsh was likely not installed via this system."
     }

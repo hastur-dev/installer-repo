@@ -44,18 +44,18 @@ function Write-LogWarn {
 function Main {
     Write-LogInfo "tmux installation check on Windows..."
     Write-LogWarn "tmux is a Linux/Unix-specific tool and is not available natively on Windows."
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "Windows alternatives for terminal multiplexing:"
     Write-LogInfo "  - Windows Terminal: Built-in tabbed terminal with pane support"
     Write-LogInfo "  - ConEmu: Feature-rich terminal emulator with tabs and splits"
     Write-LogInfo "  - Cmder: Console emulator with tabs and split views"
     Write-LogInfo "  - Terminus: Modern terminal with split views"
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "If you need tmux specifically, you can use:"
     Write-LogInfo "  - WSL (Windows Subsystem for Linux): Install tmux inside WSL"
     Write-LogInfo "  - Cygwin or MSYS2: Unix-like environments for Windows"
     Write-LogInfo "  - Git Bash with MSYS2: Provides tmux via pacman"
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogSuccess "No installation performed - tmux is not supported on Windows."
     exit 0
 }

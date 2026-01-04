@@ -74,12 +74,12 @@ function Main {
     Write-LogWarn "pip is bundled with Python and cannot be uninstalled separately."
     Write-LogWarn "To remove pip, you would need to uninstall Python."
     Write-LogWarn "This script will NOT uninstall pip/Python to prevent issues."
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "If you need to remove Python (and thus pip), use:"
     Write-LogInfo "  winget uninstall --id Python.Python.3.12"
     Write-LogInfo "  or"
     Write-LogInfo "  choco uninstall python"
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "Consider using virtual environments (venv) instead."
 
     if (Test-PipInstalled) {

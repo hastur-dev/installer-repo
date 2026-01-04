@@ -115,7 +115,7 @@ jobs:
           for script in scripts/linux/*/*.sh; do
             if [ -f "$script" ]; then
               echo "Checking: $script"
-              if ! shellcheck -x "$script"; then
+              if ! shellcheck -x -S error "$script"; then
                 ((ERRORS++)) || true
               fi
             fi

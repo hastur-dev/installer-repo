@@ -44,17 +44,17 @@ function Write-LogWarn {
 function Main {
     Write-LogInfo "ncdu installation check on Windows..."
     Write-LogWarn "ncdu is a Linux/Unix-specific tool and is not available natively on Windows."
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "Windows alternatives for disk usage analysis:"
     Write-LogInfo "  - WinDirStat: Visual disk usage analyzer (free)"
     Write-LogInfo "  - TreeSize Free: Disk space manager with tree view"
     Write-LogInfo "  - SpaceSniffer: Visual disk space analyzer"
     Write-LogInfo "  - WizTree: Fast disk space analyzer"
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "If you need ncdu specifically, you can use:"
     Write-LogInfo "  - WSL (Windows Subsystem for Linux): Install ncdu inside WSL"
     Write-LogInfo "  - Cygwin or MSYS2: Unix-like environments for Windows"
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogSuccess "No installation performed - ncdu is not supported on Windows."
     exit 0
 }

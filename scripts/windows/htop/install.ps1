@@ -45,17 +45,17 @@ function Write-LogWarn {
 function Main {
     Write-LogInfo "htop installation check on Windows..."
     Write-LogWarn "htop is a Linux/Unix-specific tool and is not available natively on Windows."
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "Windows alternatives for process monitoring:"
     Write-LogInfo "  - Task Manager (built-in): Press Ctrl+Shift+Esc"
     Write-LogInfo "  - Resource Monitor (built-in): Run 'resmon' from command line"
     Write-LogInfo "  - Process Explorer: Download from Microsoft Sysinternals"
     Write-LogInfo "  - btop4win: Windows port of btop (similar to htop)"
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogInfo "If you need htop specifically, you can use:"
     Write-LogInfo "  - WSL (Windows Subsystem for Linux): Install htop inside WSL"
     Write-LogInfo "  - Cygwin or MSYS2: Unix-like environments for Windows"
-    Write-LogInfo ""
+    Write-Host ""
     Write-LogSuccess "No installation performed - htop is not supported on Windows."
     exit 0
 }
