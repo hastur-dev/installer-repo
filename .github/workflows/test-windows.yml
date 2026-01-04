@@ -155,9 +155,21 @@ jobs:
 
           $tech = "${{ matrix.technology }}"
           Write-Host "========================================="
-          Write-Host "Testing $tech on Windows"
+          Write-Host "Installing $tech on Windows"
           Write-Host "========================================="
           & ".\scripts\windows\$tech\install.ps1"
+
+      - name: Run uninstall script
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+
+          $tech = "${{ matrix.technology }}"
+          Write-Host "========================================="
+          Write-Host "Uninstalling $tech on Windows"
+          Write-Host "========================================="
+          & ".\scripts\windows\$tech\uninstall.ps1"
 
   status:
     name: Windows CI Status

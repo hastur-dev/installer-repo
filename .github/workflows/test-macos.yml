@@ -141,17 +141,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Make script executable
-        run: chmod +x scripts/macos/${{ matrix.technology }}/install.sh
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/macos/${{ matrix.technology }}/install.sh
+          chmod +x scripts/macos/${{ matrix.technology }}/uninstall.sh
 
       - name: Run install script
         run: |
           set -euo pipefail
           TECH="${{ matrix.technology }}"
           echo "========================================="
-          echo "Testing $TECH on macOS"
+          echo "Installing $TECH on macOS"
           echo "========================================="
           ./scripts/macos/$TECH/install.sh
+
+      - name: Run uninstall script
+        run: |
+          set -euo pipefail
+          TECH="${{ matrix.technology }}"
+          echo "========================================="
+          echo "Uninstalling $TECH on macOS"
+          echo "========================================="
+          ./scripts/macos/$TECH/uninstall.sh
 
   status:
     name: macOS CI Status
