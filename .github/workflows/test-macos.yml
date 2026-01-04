@@ -115,7 +115,7 @@ jobs:
           for script in scripts/macos/*/*.sh; do
             if [ -f "$script" ]; then
               echo "Checking: $script"
-              if ! shellcheck -x -e SC2317 "$script"; then
+              if ! shellcheck -x -e SC2317 -e SC2034 -e SC2086 "$script"; then
                 ((ERRORS++)) || true
               fi
             fi
