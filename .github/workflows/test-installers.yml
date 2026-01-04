@@ -38,7 +38,7 @@ jobs:
           MAX_SCRIPTS=100
 
           # Find all .sh files in application directories
-          for script in */install-*.sh */run-*.sh */uninstall-*.sh; do
+          for script in scripts/*/install-*.sh scripts/*/run-*.sh scripts/*/uninstall-*.sh; do
             if [ -f "$script" ]; then
               ((SCRIPTS_FOUND++)) || true
               if [ $SCRIPTS_FOUND -gt $MAX_SCRIPTS ]; then
@@ -62,7 +62,7 @@ jobs:
           $scriptsFound = 0
 
           # Find all .ps1 files in application directories
-          $patterns = @("*/install-*.ps1", "*/run-*.ps1", "*/uninstall-*.ps1")
+          $patterns = @("scripts/*/install-*.ps1", "scripts/*/run-*.ps1", "scripts/*/uninstall-*.ps1")
           foreach ($pattern in $patterns) {
             Get-ChildItem -Path $pattern -ErrorAction SilentlyContinue | ForEach-Object {
               $scriptsFound++
@@ -108,13 +108,13 @@ jobs:
         run: |
           set -euo pipefail
           echo "Running install-linux.sh..."
-          docker run --rm install-linux /bin/bash -c "/app/vim/install-linux.sh"
+          docker run --rm install-linux /bin/bash -c "/app/scripts/vim/install-linux.sh"
 
       - name: Run verification script in container
         run: |
           set -euo pipefail
           echo "Running run-linux.sh to verify installation..."
-          docker run --rm install-linux /bin/bash -c "/app/vim/install-linux.sh && /app/vim/run-linux.sh"
+          docker run --rm install-linux /bin/bash -c "/app/scripts/vim/install-linux.sh && /app/scripts/vim/run-linux.sh"
 
   # ============================================
   # macOS Testing (Native runner)
@@ -129,20 +129,20 @@ jobs:
 
       - name: Make scripts executable
         run: |
-          chmod +x vim/install-macos.sh
-          chmod +x vim/run-macos.sh
+          chmod +x scripts/vim/install-macos.sh
+          chmod +x scripts/vim/run-macos.sh
 
       - name: Run install script
         run: |
           set -euo pipefail
           echo "Running install-macos.sh..."
-          ./vim/install-macos.sh
+          ./scripts/vim/install-macos.sh
 
       - name: Run verification script
         run: |
           set -euo pipefail
           echo "Running run-macos.sh to verify installation..."
-          ./vim/run-macos.sh
+          ./scripts/vim/run-macos.sh
 
   # ============================================
   # Windows Testing (Native runner)
@@ -162,7 +162,7 @@ jobs:
           $ErrorActionPreference = "Stop"
 
           Write-Host "Running install-windows.ps1..."
-          & .\vim\install-windows.ps1
+          & .\scripts\vim\install-windows.ps1
 
       - name: Run verification script
         shell: pwsh
@@ -171,7 +171,7 @@ jobs:
           $ErrorActionPreference = "Stop"
 
           Write-Host "Running run-windows.ps1 to verify installation..."
-          & .\vim\run-windows.ps1
+          & .\scripts\vim\run-windows.ps1
 
   # ============================================
   # Docker Build Test (all Dockerfiles)
