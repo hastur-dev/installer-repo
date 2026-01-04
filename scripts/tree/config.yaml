@@ -1,0 +1,14 @@
+# tree - Directory Listing
+name: tree
+description: Display directory tree structure
+category: file-browser
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: tree
+list-command: "tree"
+depth-command: "tree -L {level}"

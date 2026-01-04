@@ -1,0 +1,14 @@
+# fd - Find Alternative
+name: fd
+description: Fast and user-friendly find alternative
+category: search
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: fd
+search-command: "fd {pattern}"
+type-command: "fd -t {type} {pattern}"

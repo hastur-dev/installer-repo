@@ -1,0 +1,15 @@
+# curl - HTTP Client
+name: curl
+description: Command-line tool for transferring data
+category: http-client
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: curl
+get-command: "curl {url}"
+post-command: "curl -X POST {url}"
+download-command: "curl -O {url}"

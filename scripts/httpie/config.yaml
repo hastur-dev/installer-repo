@@ -1,0 +1,14 @@
+# HTTPie - HTTP Client
+name: httpie
+description: User-friendly command-line HTTP client
+category: http-client
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: http
+get-command: "http GET {url}"
+post-command: "http POST {url}"

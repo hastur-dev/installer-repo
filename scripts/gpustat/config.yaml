@@ -1,4 +1,13 @@
-# gpustat configuration
-# GPU monitoring tool - does not operate on files
+# gpustat - GPU Monitoring Tool
+name: gpustat
+description: Simple GPU monitoring utility
+category: monitoring
 
+# Capabilities
 choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: gpustat
+watch-command: "gpustat -i"

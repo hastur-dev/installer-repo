@@ -1,4 +1,15 @@
-# npm configuration
-# Package manager - does not operate on individual files
+# npm - Package Manager
+name: npm
+description: Node.js package manager
+category: package-manager
 
+# Capabilities
 choose-file: false
+has-repl: false
+is-package-manager: true
+
+# Commands
+command: npm
+install-command: "npm install {package}"
+uninstall-command: "npm uninstall {package}"
+search-command: "npm search {query}"

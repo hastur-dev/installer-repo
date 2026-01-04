@@ -1,0 +1,13 @@
+# htop - Process Viewer
+name: htop
+description: Interactive process viewer
+category: monitoring
+
+# Capabilities
+choose-file: false
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: htop
+interactive-command: "htop"

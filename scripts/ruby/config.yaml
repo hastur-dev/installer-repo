@@ -1,0 +1,14 @@
+# Ruby - Programming Language
+name: ruby
+description: Dynamic programming language
+category: language
+
+# Capabilities
+choose-file: true
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: ruby
+run-file-command: "ruby {file}"
+repl-command: "irb"

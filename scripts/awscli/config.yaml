@@ -1,0 +1,15 @@
+# AWS CLI
+name: awscli
+description: Amazon Web Services command-line interface
+category: cloud-cli
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: aws
+configure-command: "aws configure"
+s3-command: "aws s3 {action}"
+ec2-command: "aws ec2 {action}"

@@ -1,0 +1,14 @@
+# tldr - Simplified Man Pages
+name: tldr
+description: Simplified community-driven man pages
+category: documentation
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: tldr
+lookup-command: "tldr {command}"
+update-command: "tldr --update"

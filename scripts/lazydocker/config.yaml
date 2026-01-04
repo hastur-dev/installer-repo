@@ -1,0 +1,13 @@
+# lazydocker - Docker TUI
+name: lazydocker
+description: Simple terminal UI for docker
+category: containerization
+
+# Capabilities
+choose-file: false
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: lazydocker
+interactive-command: "lazydocker"

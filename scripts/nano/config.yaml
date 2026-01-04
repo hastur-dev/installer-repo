@@ -1,0 +1,13 @@
+# Nano - Text Editor
+name: nano
+description: Simple terminal text editor
+category: editor
+
+# Capabilities
+choose-file: true
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: nano
+run-file-command: "nano {file}"

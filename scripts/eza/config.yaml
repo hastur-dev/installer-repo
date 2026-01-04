@@ -1,0 +1,14 @@
+# eza - Modern ls Replacement
+name: eza
+description: Modern replacement for ls
+category: file-browser
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: eza
+list-command: "eza -la"
+tree-command: "eza --tree"

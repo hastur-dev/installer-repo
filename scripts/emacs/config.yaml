@@ -1,4 +1,13 @@
-# Emacs configuration
-# Text editor - operates on files
+# Emacs - Text Editor
+name: emacs
+description: Extensible text editor
+category: editor
 
+# Capabilities
 choose-file: true
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: emacs
+run-file-command: "emacs {file}"

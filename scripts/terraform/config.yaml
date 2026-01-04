@@ -1,0 +1,15 @@
+# Terraform - Infrastructure as Code
+name: terraform
+description: Infrastructure as Code tool
+category: infrastructure
+
+# Capabilities
+choose-file: true
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: terraform
+init-command: "terraform init"
+plan-command: "terraform plan"
+apply-command: "terraform apply"

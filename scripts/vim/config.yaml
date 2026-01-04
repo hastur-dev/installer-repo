@@ -1,4 +1,13 @@
-# Vim configuration
-# Text editor - operates on files
+# Vim - Text Editor
+name: vim
+description: Highly configurable text editor
+category: editor
 
+# Capabilities
 choose-file: true
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: vim
+run-file-command: "vim {file}"

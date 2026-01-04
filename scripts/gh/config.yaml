@@ -1,0 +1,15 @@
+# GitHub CLI
+name: gh
+description: GitHub's official command-line tool
+category: version-control
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: gh
+pr-command: "gh pr {action}"
+issue-command: "gh issue {action}"
+repo-command: "gh repo {action}"

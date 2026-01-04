@@ -1,0 +1,15 @@
+# Docker - Container Platform
+name: docker
+description: Platform for building and running containers
+category: containerization
+
+# Capabilities
+choose-file: true
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: docker
+run-file-command: "docker build -f {file} ."
+run-command: "docker run {image}"
+list-command: "docker ps"

@@ -1,0 +1,15 @@
+# SQLite - Database
+name: sqlite
+description: Lightweight embedded SQL database
+category: database
+
+# Capabilities
+choose-file: true
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: sqlite3
+run-file-command: "sqlite3 {file}"
+repl-command: "sqlite3"
+query-command: "sqlite3 {file} '{query}'"

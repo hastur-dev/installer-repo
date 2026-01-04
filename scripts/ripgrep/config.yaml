@@ -1,0 +1,14 @@
+# ripgrep - Search Tool
+name: ripgrep
+description: Fast recursive search tool
+category: search
+
+# Capabilities
+choose-file: true
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: rg
+search-command: "rg {pattern}"
+search-file-command: "rg {pattern} {file}"

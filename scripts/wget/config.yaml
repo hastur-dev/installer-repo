@@ -1,0 +1,14 @@
+# wget - File Downloader
+name: wget
+description: Non-interactive network downloader
+category: downloader
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: wget
+download-command: "wget {url}"
+recursive-command: "wget -r {url}"

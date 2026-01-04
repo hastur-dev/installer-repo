@@ -1,0 +1,14 @@
+# CMake - Build System Generator
+name: cmake
+description: Cross-platform build system generator
+category: build-tool
+
+# Capabilities
+choose-file: true
+has-repl: false
+is-package-manager: false
+
+# Commands
+command: cmake
+configure-command: "cmake ."
+build-command: "cmake --build ."

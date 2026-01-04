@@ -1,0 +1,16 @@
+# pip - Python Package Manager
+name: pip
+description: Python package installer
+category: package-manager
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: true
+
+# Commands
+command: pip
+install-command: "pip install {package}"
+uninstall-command: "pip uninstall {package}"
+search-command: "pip search {query}"
+list-command: "pip list"

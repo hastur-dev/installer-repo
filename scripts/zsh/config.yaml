@@ -1,0 +1,14 @@
+# Zsh - Shell
+name: zsh
+description: Z shell - extended Bourne shell
+category: shell
+
+# Capabilities
+choose-file: true
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: zsh
+run-file-command: "zsh {file}"
+repl-command: "zsh"

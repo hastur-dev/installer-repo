@@ -1,0 +1,15 @@
+# Yarn - JavaScript Package Manager
+name: yarn
+description: Fast, reliable JavaScript package manager
+category: package-manager
+
+# Capabilities
+choose-file: false
+has-repl: false
+is-package-manager: true
+
+# Commands
+command: yarn
+install-command: "yarn add {package}"
+uninstall-command: "yarn remove {package}"
+global-install-command: "yarn global add {package}"

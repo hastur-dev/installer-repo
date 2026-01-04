@@ -1,0 +1,14 @@
+# Fish - Shell
+name: fish
+description: Friendly interactive shell
+category: shell
+
+# Capabilities
+choose-file: true
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: fish
+run-file-command: "fish {file}"
+repl-command: "fish"

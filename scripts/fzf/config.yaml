@@ -1,0 +1,14 @@
+# fzf - Fuzzy Finder
+name: fzf
+description: Command-line fuzzy finder
+category: search
+
+# Capabilities
+choose-file: true
+has-repl: true
+is-package-manager: false
+
+# Commands
+command: fzf
+interactive-command: "fzf"
+preview-command: "fzf --preview 'cat {}'"
