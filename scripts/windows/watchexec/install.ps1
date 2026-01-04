@@ -1,0 +1,43 @@
+# Install script for watchexec on Windows
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$SCRIPT_NAME = "install.ps1"
+
+function Write-LogInfo { param($Message) Write-Host "[INFO] ${SCRIPT_NAME}: $Message" }
+function Write-LogError { param($Message) Write-Host "[ERROR] ${SCRIPT_NAME}: $Message" -ForegroundColor Red }
+function Write-LogSuccess { param($Message) Write-Host "[SUCCESS] ${SCRIPT_NAME}: $Message" -ForegroundColor Green }
+
+function Main {
+    Write-LogInfo "Starting watchexec installation on Windows..."
+
+    $installed = $false
+
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        choco install watchexec -y --no-progress 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $installed = $true
+            Write-LogSuccess "watchexec installed via Chocolatey"
+        }
+    }
+
+    if (-not $installed -and (Get-Command cargo -ErrorAction SilentlyContinue)) {
+        cargo install watchexec-cli --locked 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $installed = $true
+            Write-LogSuccess "watchexec installed via cargo"
+        }
+    }
+
+    if (-not $installed) {
+        Write-LogError "Failed to install watchexec"
+        exit 1
+    }
+
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    Write-LogSuccess "Installation complete!"
+    exit 0
+}
+
+Main

@@ -1,0 +1,186 @@
+# GitHub Actions workflow for testing Linux install scripts
+# Directory structure: scripts/linux/<technology>/install.sh
+
+name: Test Linux Install Scripts
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/linux/**'
+      - '.github/workflows/test-linux.yml'
+    types: [opened, synchronize, reopened]
+
+  workflow_dispatch:
+    inputs:
+      technology:
+        description: 'Specific technology to test (leave empty for all new)'
+        required: false
+        type: string
+
+jobs:
+  discover:
+    name: Discover New Technologies
+    runs-on: ubuntu-latest
+    outputs:
+      technologies: ${{ steps.discover.outputs.technologies }}
+      has_new: ${{ steps.discover.outputs.has_new }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Discover new Linux technologies
+        id: discover
+        run: |
+          set -euo pipefail
+
+          # Check if specific technology was requested
+          SPECIFIC_TECH="${{ github.event.inputs.technology }}"
+          if [ -n "$SPECIFIC_TECH" ]; then
+            if [ -f "scripts/linux/${SPECIFIC_TECH}/install.sh" ]; then
+              echo "technologies=[\"${SPECIFIC_TECH}\"]" >> $GITHUB_OUTPUT
+              echo "has_new=true" >> $GITHUB_OUTPUT
+              echo "Testing specific technology: $SPECIFIC_TECH"
+              exit 0
+            else
+              echo "Technology not found: $SPECIFIC_TECH"
+              echo "technologies=[]" >> $GITHUB_OUTPUT
+              echo "has_new=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          echo "Discovering NEW Linux technologies..."
+
+          # Exclude list for technologies that can't run in CI
+          EXCLUDE_LIST="gpustat"
+
+          # Get technologies from main branch
+          git fetch origin main --depth=1 2>/dev/null || true
+          MAIN_TECHS=$(git ls-tree --name-only origin/main scripts/linux/ 2>/dev/null | sed 's|scripts/linux/||' | grep -v '^$' || echo "")
+
+          TECHNOLOGIES=()
+          COUNT=0
+
+          for dir in scripts/linux/*/; do
+            if [ -d "$dir" ]; then
+              tech_name=$(basename "$dir")
+
+              # Skip excluded
+              if echo "$EXCLUDE_LIST" | grep -qw "$tech_name"; then
+                continue
+              fi
+
+              # Skip if in main
+              if echo "$MAIN_TECHS" | grep -qw "$tech_name"; then
+                continue
+              fi
+
+              # Verify install script exists
+              if [ -f "${dir}install.sh" ]; then
+                TECHNOLOGIES+=("$tech_name")
+                ((COUNT++)) || true
+                echo "NEW: $tech_name"
+              fi
+            fi
+          done
+
+          if [ ${#TECHNOLOGIES[@]} -eq 0 ]; then
+            echo "technologies=[]" >> $GITHUB_OUTPUT
+            echo "has_new=false" >> $GITHUB_OUTPUT
+          else
+            JSON=$(printf '%s\n' "${TECHNOLOGIES[@]}" | jq -R . | jq -s -c .)
+            echo "technologies=$JSON" >> $GITHUB_OUTPUT
+            echo "has_new=true" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Found $COUNT new technologies"
+
+  validate:
+    name: Validate Shell Scripts
+    runs-on: ubuntu-latest
+    needs: discover
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run shellcheck
+        run: |
+          set -euo pipefail
+          sudo apt-get update && sudo apt-get install -y shellcheck
+
+          echo "Validating Linux shell scripts..."
+          ERRORS=0
+
+          for script in scripts/linux/*/*.sh; do
+            if [ -f "$script" ]; then
+              echo "Checking: $script"
+              if ! shellcheck -x "$script"; then
+                ((ERRORS++)) || true
+              fi
+            fi
+          done
+
+          if [ $ERRORS -gt 0 ]; then
+            echo "Found $ERRORS scripts with issues"
+            exit 1
+          fi
+
+          echo "All scripts passed validation"
+
+  test:
+    name: Test - ${{ matrix.technology }}
+    runs-on: ubuntu-latest
+    needs: [discover, validate]
+    if: needs.discover.outputs.has_new == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        technology: ${{ fromJson(needs.discover.outputs.technologies) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x scripts/linux/${{ matrix.technology }}/install.sh
+
+      - name: Run install script
+        run: |
+          set -euo pipefail
+          TECH="${{ matrix.technology }}"
+          echo "========================================="
+          echo "Testing $TECH on Linux (Ubuntu)"
+          echo "========================================="
+          sudo ./scripts/linux/$TECH/install.sh
+
+  status:
+    name: Linux CI Status
+    runs-on: ubuntu-latest
+    needs: [discover, validate, test]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "========================================="
+          echo "Linux CI Status"
+          echo "========================================="
+
+          if [ "${{ needs.discover.result }}" != "success" ]; then
+            echo "❌ Discovery failed"
+            exit 1
+          fi
+
+          if [ "${{ needs.validate.result }}" != "success" ]; then
+            echo "❌ Validation failed"
+            exit 1
+          fi
+
+          if [ "${{ needs.discover.outputs.has_new }}" == "true" ]; then
+            if [ "${{ needs.test.result }}" != "success" ]; then
+              echo "❌ Tests failed"
+              exit 1
+            fi
+            echo "✅ All tests passed"
+          else
+            echo "✅ No new technologies to test"
+          fi
