@@ -1,4 +1,4 @@
-# Ratterm Installer
+# Installer Repo
 
 Cross-platform installation and verification system for third-party applications. This project provides a framework for creating, testing, and running install scripts across Windows, Linux, and macOS.
 
@@ -14,7 +14,7 @@ This system provides:
 ## Repository Structure
 
 ```
-ratterm-installer/
+installer-repo/
 ├── .github/
 │   └── workflows/
 │       └── test-installers.yml    # CI workflow for all platforms
@@ -22,16 +22,6 @@ ratterm-installer/
 │   ├── Dockerfile.linux           # Ubuntu-based container
 │   ├── Dockerfile.linux-fedora    # Fedora-based container
 │   └── Dockerfile.linux-alpine    # Alpine-based container
-├── vim/                           # Vim application scripts
-│   ├── install-linux.sh           # Linux install script
-│   ├── install-macos.sh           # macOS install script
-│   ├── install-windows.ps1        # Windows install script
-│   ├── run-linux.sh               # Linux verification script
-│   ├── run-macos.sh               # macOS verification script
-│   ├── run-windows.ps1            # Windows verification script
-│   ├── uninstall-linux.sh         # Linux uninstall script
-│   ├── uninstall-macos.sh         # macOS uninstall script
-│   └── uninstall-windows.ps1      # Windows uninstall script
 ├── scripts/
 │   ├── run_all.sh                 # Master test runner (POSIX)
 │   └── run_all.ps1                # Master test runner (Windows)
