@@ -1,0 +1,41 @@
+# Install script for consul on Windows
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+$SCRIPT_NAME = "install.ps1"
+function Write-LogInfo { param($Message) Write-Host "[INFO] ${SCRIPT_NAME}: $Message" }
+function Write-LogError { param($Message) Write-Host "[ERROR] ${SCRIPT_NAME}: $Message" -ForegroundColor Red }
+function Write-LogSuccess { param($Message) Write-Host "[SUCCESS] ${SCRIPT_NAME}: $Message" -ForegroundColor Green }
+
+function Main {
+    Write-LogInfo "Starting consul installation on Windows..."
+    $installed = $false
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        choco install consul -y --no-progress 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) { $installed = $true }
+    }
+    if (-not $installed -and (Get-Command scoop -ErrorAction SilentlyContinue)) {
+        scoop install consul 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) { $installed = $true }
+    }
+    if (-not $installed) {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/hashicorp/consul/releases/latest"
+        $version = $release.tag_name -replace '^v', ''
+        $url = "https://releases.hashicorp.com/consul/${version}/consul_${version}_windows_amd64.zip"
+        $zip = "$env:TEMP\consul.zip"
+        Invoke-WebRequest -Uri $url -OutFile $zip
+        Expand-Archive -Path $zip -DestinationPath "$env:TEMP\consul" -Force
+        Copy-Item "$env:TEMP\consul\consul.exe" -Destination "C:\Windows\System32\consul.exe" -Force
+        Remove-Item $zip -Force
+        $installed = $true
+    }
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    if (Get-Command consul -ErrorAction SilentlyContinue) {
+        Write-LogSuccess "consul installed: $(consul version 2>&1 | Select-Object -First 1)"
+    } else {
+        Write-LogError "Failed to install consul"
+        exit 1
+    }
+    Write-LogSuccess "Installation complete!"
+}
+Main
+exit 0
