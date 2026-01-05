@@ -22,7 +22,8 @@ main() {
             x86_64) arch="x86_64" ;;
             aarch64) arch="arm64" ;;
         esac
-        curl -sL "https://github.com/charmbracelet/gum/releases/download/v${version}/gum_${version}_Linux_${arch}.tar.gz" | tar xz -C /usr/local/bin gum
+        curl -sL "https://github.com/charmbracelet/gum/releases/download/v${version}/gum_${version}_Linux_${arch}.tar.gz" | tar xz -C /tmp
+        mv /tmp/gum_${version}_Linux_${arch}/gum /usr/local/bin/
         chmod +x /usr/local/bin/gum
         installed=true
     fi
