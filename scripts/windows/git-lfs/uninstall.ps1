@@ -1,0 +1,23 @@
+# Uninstall script for git-lfs on Windows
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$SCRIPT_NAME = "uninstall.ps1"
+
+function Write-LogInfo { param($Message) Write-Host "[INFO] ${SCRIPT_NAME}: $Message" }
+function Write-LogSuccess { param($Message) Write-Host "[SUCCESS] ${SCRIPT_NAME}: $Message" -ForegroundColor Green }
+
+function Main {
+    Write-LogInfo "Starting git-lfs uninstallation on Windows..."
+
+    try { git lfs uninstall 2>&1 | Out-Null } catch {}
+    try { winget uninstall --id GitHub.GitLFS --silent 2>&1 | Out-Null } catch {}
+    try { choco uninstall git-lfs -y --no-progress 2>&1 | Out-Null } catch {}
+    try { scoop uninstall git-lfs 2>&1 | Out-Null } catch {}
+
+    Write-LogSuccess "git-lfs uninstalled"
+    exit 0
+}
+
+Main
