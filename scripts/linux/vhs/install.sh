@@ -13,8 +13,18 @@ main() {
         brew install vhs && installed=true
     fi
 
-    if [[ "$installed" == "false" ]] && command -v go &> /dev/null; then
-        go install github.com/charmbracelet/vhs@latest && installed=true
+    if [[ "$installed" == "false" ]]; then
+        local version
+        version=$(curl -s https://api.github.com/repos/charmbracelet/vhs/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+        local arch
+        arch=$(uname -m)
+        case "$arch" in
+            x86_64) arch="x86_64" ;;
+            aarch64) arch="arm64" ;;
+        esac
+        curl -sL "https://github.com/charmbracelet/vhs/releases/download/v${version}/vhs_${version}_Linux_${arch}.tar.gz" | tar xz -C /usr/local/bin vhs
+        chmod +x /usr/local/bin/vhs
+        installed=true
     fi
 
     if command -v vhs &> /dev/null; then

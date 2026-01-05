@@ -9,15 +9,16 @@ function Write-LogSuccess { param($Message) Write-Host "[SUCCESS] ${SCRIPT_NAME}
 function Main {
     Write-LogInfo "Starting poetry installation on Windows..."
     $installed = $false
-    if (Get-Command choco -ErrorAction SilentlyContinue) {
-        choco install poetry -y --no-progress 2>&1 | Out-Null
+    if (Get-Command pipx -ErrorAction SilentlyContinue) {
+        pipx install poetry 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $installed = $true }
     }
-    if (-not $installed -and (Get-Command scoop -ErrorAction SilentlyContinue)) {
-        scoop install poetry 2>&1 | Out-Null
-        if ($LASTEXITCODE -eq 0) { $installed = $true }
+    if (-not $installed) {
+        $env:POETRY_HOME = "C:\Poetry"
+        (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+        $installed = $true
     }
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    $env:Path = "C:\Poetry\bin;" + [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     if (Get-Command poetry -ErrorAction SilentlyContinue) {
         Write-LogSuccess "poetry installed: $(poetry --version 2>&1 | Select-Object -First 1)"
     } else {

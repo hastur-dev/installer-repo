@@ -17,6 +17,14 @@ function Main {
         scoop install ttyd 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $installed = $true }
     }
+    if (-not $installed) {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/tsl0922/ttyd/releases/latest"
+        $asset = $release.assets | Where-Object { $_.name -like "*win32.exe" -or $_.name -like "*win*.exe" } | Select-Object -First 1
+        if ($asset) {
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "C:\Windows\System32\ttyd.exe"
+            $installed = $true
+        }
+    }
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     if (Get-Command ttyd -ErrorAction SilentlyContinue) {
         Write-LogSuccess "ttyd installed: $(ttyd --version 2>&1 | Select-Object -First 1)"

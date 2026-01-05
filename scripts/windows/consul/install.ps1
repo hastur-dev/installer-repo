@@ -9,13 +9,24 @@ function Write-LogSuccess { param($Message) Write-Host "[SUCCESS] ${SCRIPT_NAME}
 function Main {
     Write-LogInfo "Starting consul installation on Windows..."
     $installed = $false
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        winget install --id Hashicorp.Consul --accept-source-agreements --accept-package-agreements --silent 2>&1 | Out-Null
-        if ($LASTEXITCODE -eq 0) { $installed = $true }
-    }
-    if (-not $installed -and (Get-Command choco -ErrorAction SilentlyContinue)) {
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
         choco install consul -y --no-progress 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $installed = $true }
+    }
+    if (-not $installed -and (Get-Command scoop -ErrorAction SilentlyContinue)) {
+        scoop install consul 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) { $installed = $true }
+    }
+    if (-not $installed) {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/hashicorp/consul/releases/latest"
+        $version = $release.tag_name -replace '^v', ''
+        $url = "https://releases.hashicorp.com/consul/${version}/consul_${version}_windows_amd64.zip"
+        $zip = "$env:TEMP\consul.zip"
+        Invoke-WebRequest -Uri $url -OutFile $zip
+        Expand-Archive -Path $zip -DestinationPath "$env:TEMP\consul" -Force
+        Copy-Item "$env:TEMP\consul\consul.exe" -Destination "C:\Windows\System32\consul.exe" -Force
+        Remove-Item $zip -Force
+        $installed = $true
     }
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     if (Get-Command consul -ErrorAction SilentlyContinue) {

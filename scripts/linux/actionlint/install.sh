@@ -13,10 +13,6 @@ main() {
         brew install actionlint && installed=true
     fi
 
-    if [[ "$installed" == "false" ]] && command -v go &> /dev/null; then
-        go install github.com/rhysd/actionlint/cmd/actionlint@latest && installed=true
-    fi
-
     if [[ "$installed" == "false" ]]; then
         local version=$(curl -s https://api.github.com/repos/rhysd/actionlint/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
         local arch=$(uname -m)

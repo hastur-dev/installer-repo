@@ -17,6 +17,16 @@ function Main {
         scoop install dprint 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $installed = $true }
     }
+    if (-not $installed) {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/dprint/dprint/releases/latest"
+        $asset = $release.assets | Where-Object { $_.name -like "*x86_64-pc-windows-msvc.zip" } | Select-Object -First 1
+        $zip = "$env:TEMP\dprint.zip"
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip
+        Expand-Archive -Path $zip -DestinationPath "$env:TEMP\dprint" -Force
+        Copy-Item "$env:TEMP\dprint\dprint.exe" -Destination "C:\Windows\System32\dprint.exe" -Force
+        Remove-Item $zip -Force
+        $installed = $true
+    }
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     if (Get-Command dprint -ErrorAction SilentlyContinue) {
         Write-LogSuccess "dprint installed: $(dprint --version 2>&1 | Select-Object -First 1)"

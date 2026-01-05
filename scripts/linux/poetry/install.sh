@@ -14,11 +14,11 @@ main() {
     fi
 
     if [[ "$installed" == "false" ]]; then
+        export POETRY_HOME="/usr/local"
         curl -sSL https://install.python-poetry.org | python3 -
         installed=true
     fi
 
-    export PATH="$HOME/.local/bin:$PATH"
     if command -v poetry &> /dev/null; then
         log_success "poetry installed: $(poetry --version 2>&1)"
     else

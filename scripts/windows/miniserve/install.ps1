@@ -17,6 +17,13 @@ function Main {
         scoop install miniserve 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $installed = $true }
     }
+    if (-not $installed) {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/svenstaro/miniserve/releases/latest"
+        $version = $release.tag_name -replace '^v', ''
+        $asset = $release.assets | Where-Object { $_.name -like "*x86_64-pc-windows-msvc.exe" } | Select-Object -First 1
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "C:\Windows\System32\miniserve.exe"
+        $installed = $true
+    }
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     if (Get-Command miniserve -ErrorAction SilentlyContinue) {
         Write-LogSuccess "miniserve installed: $(miniserve --version 2>&1 | Select-Object -First 1)"

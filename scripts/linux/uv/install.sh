@@ -14,11 +14,19 @@ main() {
     fi
 
     if [[ "$installed" == "false" ]]; then
-        curl -LsSf https://astral.sh/uv/install.sh | sh
+        local arch
+        arch=$(uname -m)
+        case "$arch" in
+            x86_64) arch="x86_64" ;;
+            aarch64) arch="aarch64" ;;
+        esac
+        curl -sL "https://github.com/astral-sh/uv/releases/latest/download/uv-${arch}-unknown-linux-gnu.tar.gz" | tar xz -C /tmp
+        mv /tmp/uv-${arch}-unknown-linux-gnu/uv /usr/local/bin/
+        mv /tmp/uv-${arch}-unknown-linux-gnu/uvx /usr/local/bin/
+        chmod +x /usr/local/bin/uv /usr/local/bin/uvx
         installed=true
     fi
 
-    export PATH="$HOME/.cargo/bin:$PATH"
     if command -v uv &> /dev/null; then
         log_success "uv installed: $(uv --version 2>&1)"
     else

@@ -17,6 +17,16 @@ function Main {
         scoop install vhs 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $installed = $true }
     }
+    if (-not $installed) {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/charmbracelet/vhs/releases/latest"
+        $asset = $release.assets | Where-Object { $_.name -like "*Windows_x86_64.zip" } | Select-Object -First 1
+        $zip = "$env:TEMP\vhs.zip"
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip
+        Expand-Archive -Path $zip -DestinationPath "$env:TEMP\vhs" -Force
+        Copy-Item "$env:TEMP\vhs\vhs.exe" -Destination "C:\Windows\System32\vhs.exe" -Force
+        Remove-Item $zip -Force
+        $installed = $true
+    }
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     if (Get-Command vhs -ErrorAction SilentlyContinue) {
         Write-LogSuccess "vhs installed: $(vhs --version 2>&1 | Select-Object -First 1)"

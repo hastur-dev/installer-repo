@@ -13,8 +13,18 @@ main() {
         brew install typos-cli && installed=true
     fi
 
-    if [[ "$installed" == "false" ]] && command -v cargo &> /dev/null; then
-        cargo install typos-cli && installed=true
+    if [[ "$installed" == "false" ]]; then
+        local version
+        version=$(curl -s https://api.github.com/repos/crate-ci/typos/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+        local arch
+        arch=$(uname -m)
+        case "$arch" in
+            x86_64) arch="x86_64" ;;
+            aarch64) arch="aarch64" ;;
+        esac
+        curl -sL "https://github.com/crate-ci/typos/releases/download/v${version}/typos-v${version}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C /usr/local/bin ./typos
+        chmod +x /usr/local/bin/typos
+        installed=true
     fi
 
     if command -v typos &> /dev/null; then

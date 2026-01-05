@@ -13,8 +13,18 @@ main() {
         brew install miniserve && installed=true
     fi
 
-    if [[ "$installed" == "false" ]] && command -v cargo &> /dev/null; then
-        cargo install miniserve && installed=true
+    if [[ "$installed" == "false" ]]; then
+        local version
+        version=$(curl -s https://api.github.com/repos/svenstaro/miniserve/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+        local arch
+        arch=$(uname -m)
+        case "$arch" in
+            x86_64) arch="x86_64" ;;
+            aarch64) arch="aarch64" ;;
+        esac
+        curl -sL "https://github.com/svenstaro/miniserve/releases/download/v${version}/miniserve-${version}-${arch}-unknown-linux-gnu" -o /usr/local/bin/miniserve
+        chmod +x /usr/local/bin/miniserve
+        installed=true
     fi
 
     if command -v miniserve &> /dev/null; then

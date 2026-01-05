@@ -13,8 +13,19 @@ main() {
         brew install git-cliff && installed=true
     fi
 
-    if [[ "$installed" == "false" ]] && command -v cargo &> /dev/null; then
-        cargo install git-cliff && installed=true
+    if [[ "$installed" == "false" ]]; then
+        local version
+        version=$(curl -s https://api.github.com/repos/orhun/git-cliff/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+        local arch
+        arch=$(uname -m)
+        case "$arch" in
+            x86_64) arch="x86_64" ;;
+            aarch64) arch="aarch64" ;;
+        esac
+        curl -sL "https://github.com/orhun/git-cliff/releases/download/v${version}/git-cliff-${version}-${arch}-unknown-linux-gnu.tar.gz" | tar xz -C /tmp
+        mv /tmp/git-cliff-${version}/git-cliff /usr/local/bin/
+        chmod +x /usr/local/bin/git-cliff
+        installed=true
     fi
 
     if command -v git-cliff &> /dev/null; then

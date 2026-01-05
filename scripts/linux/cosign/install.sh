@@ -13,10 +13,6 @@ main() {
         brew install cosign && installed=true
     fi
 
-    if [[ "$installed" == "false" ]] && command -v go &> /dev/null; then
-        go install github.com/sigstore/cosign/v2/cmd/cosign@latest && installed=true
-    fi
-
     if [[ "$installed" == "false" ]]; then
         local arch=$(uname -m)
         case "$arch" in
