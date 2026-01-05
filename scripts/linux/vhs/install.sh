@@ -22,7 +22,8 @@ main() {
             x86_64) arch="x86_64" ;;
             aarch64) arch="arm64" ;;
         esac
-        curl -sL "https://github.com/charmbracelet/vhs/releases/download/v${version}/vhs_${version}_Linux_${arch}.tar.gz" | tar xz -C /usr/local/bin vhs
+        curl -sL "https://github.com/charmbracelet/vhs/releases/download/v${version}/vhs_${version}_Linux_${arch}.tar.gz" | tar xz -C /tmp
+        mv /tmp/vhs /usr/local/bin/
         chmod +x /usr/local/bin/vhs
         installed=true
     fi

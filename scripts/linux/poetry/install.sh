@@ -9,15 +9,9 @@ main() {
     log_info "Starting poetry installation on Linux..."
     local installed=false
 
-    if command -v pipx &> /dev/null; then
-        pipx install poetry && installed=true
-    fi
-
-    if [[ "$installed" == "false" ]]; then
-        export POETRY_HOME="/usr/local"
-        curl -sSL https://install.python-poetry.org | python3 -
-        installed=true
-    fi
+    export POETRY_HOME="/usr/local"
+    curl -sSL https://install.python-poetry.org | python3 -
+    installed=true
 
     if command -v poetry &> /dev/null; then
         log_success "poetry installed: $(poetry --version 2>&1)"
